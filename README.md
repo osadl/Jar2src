@@ -93,3 +93,12 @@ total 68
 -rw-rw-r-- 1 carsten carsten  1144 Jul 22 11:45 HttpClientRetrieveFileTransferFactory.java
 -rw-rw-r-- 1 carsten carsten 38519 Jul 22 11:45 HttpClientRetrieveFileTransfer.java
 ```
+### Generate bash script, silently execute it in background, colorify output
+```bash
+jar2src.py -ce org.eclipse.equinox.p2.publisher.eclipse_1.5.0.v20230330-1254.jar
+```
+<img src="/img/Colorified-jar2src-output.png" alt="Example of a colorified output line">
+
+```
+Source code is located at "org.eclipse.equinox.p2.publisher.eclipse_1.5.0.v20230330-1254.jar.srcdir/p2/bundles/org.eclipse.equinox.p2.publisher.eclipse/src/org/eclipse/equinox/p2/publisher/eclipse"
+```
