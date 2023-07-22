@@ -1,6 +1,10 @@
 # Jar2src
+
+## Purpose
 Get source code of Eclipse IDE from installed JAR files
 
+## Command line options
+```bash
 ./jar2src.py --help
 usage: jar2src.py [-h] [-e] [-l] [-v] JAR
 
@@ -14,3 +18,4 @@ options:
   -v, --verbose  show names and texts the program is using
 
 Parse JAR manifest for location of source code, create script to obtain it and optionally execute script
+```
