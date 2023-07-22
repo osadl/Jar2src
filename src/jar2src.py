@@ -115,8 +115,15 @@ def getsourcecode(filename, verbose, execute, listing):
             if listing:
                 os.system('ls -l ' + relsrcdir)
         else:
-            print('Failure for "' + filename + '":')
-            print('  No source code delivered to "' + relsrcdir + '"')
+            parentrelsrcdir = os.path.normpath(relsrcdir + '/..')
+            if os.path.exists(parentrelsrcdir):
+                print('Warning (parent directory match) for "' + filename + '":')
+                print('  Source code may be located below "' + parentrelsrcdir + '"')
+                if listing:
+                    os.system('find ' + parentrelsrcdir)
+            else:
+                print('Failure for "' + filename + '":')
+                print('  No source code delivered to "' + relsrcdir + '"')
     else:
         if verbose:
             print()
