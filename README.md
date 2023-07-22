@@ -5,7 +5,9 @@ Get source code of Eclipse IDE from installed JAR files
 
 ## Command line options
 ```bash
-./jar2src.py --help
+jar2src.py --help
+```
+```
 usage: jar2src.py [-h] [-e] [-l] [-v] JAR
 
 positional arguments:
@@ -24,8 +26,12 @@ Parse JAR manifest for location of source code, create script to obtain it and o
 ### Generate bash script, only show, do not execute it
 ```bash
 cd ~/Download/eclipse-installer/plugins/
-$ jar2src.py org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar
+jar2src.py org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar
+```
+```
 Script to obtain source code:
+```
+```bash
 #!/bin/bash
 # Use this script to obtain the source code for "org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar"
 mkdir -p org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar.srcdir
@@ -38,12 +44,16 @@ git checkout 3e6a22b424f5ce0925abb3f8ea50c714a6f81628
 ### Generate bash script, silently execute it in background
 ```bash
 jar2src.py -e org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar
+```
+```
 Success for "org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar":
   Source code is located at "org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar.srcdir/ecf/providers/bundles/org.eclipse.ecf.provider.filetransfer.httpclient5/src/org/eclipse/ecf/provider/filetransfer/httpclient5"
 ```
-### Generate bash script, execute it in verbose mode and list the source code
+### Generate bash script, execute it in verbose mode and list the content of the created source code directory
 ```bash
 jar2src.py -e -l -v org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar
+```
+```
 Manifest found in "org.eclipse.ecf.provider.filetransfer.httpclient5_1.1.0.v20230423-0417.jar"
 Source reference found:
   http://git.eclipse.org/gitroot/ecf/org.eclipse.ecf.git/providers/bundles/org.eclipse.ecf.provider.filetransfer.httpclient5
