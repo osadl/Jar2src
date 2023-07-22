@@ -47,6 +47,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
         print('Manifest found in "' + filename + '"')
 
     sourceref = ''
+    license = ''
     found = 0
     while True:
         endlinepos = manifest.find('\n')
@@ -61,12 +62,16 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if line.find('Eclipse-SourceReferences: ') >= 0:
             sourceref = line[34:]
             found = 1
+        if line.find('Bundle-License: ') >= 0:
+            license = line[16:].split(';')[0]
         manifest = manifest[endlinepos + 1:]
         if len(manifest) == 0:
             break
     if len(sourceref) == 0:
         print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
         print('  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF')
+        if len(license) != 0:
+            print('  License: ' + license)
         return
 
     parts = sourceref.split(';')
