@@ -11,6 +11,19 @@ import argparse
 import re
 import zipfile
 
+class colors:
+    OK = '\033[1;32m'
+    WARN = '\033[1;33m'
+    FAIL = '\033[1;31m'
+    ENDC = '\033[0m'
+
+class nocolors:
+    OK = ''
+    WARN = ''
+    FAIL = ''
+    ENDC = ''
+
+
 def parseargs(argline):
     args = {}
     for arg in argline:
@@ -18,7 +31,7 @@ def parseargs(argline):
         args[a[0]] = a[1];
     return args
 
-def getsourcecode(filename, verbose, execute, listing):
+def getsourcecode(filename, verbose, execute, listing, c):
     manifest = ''
     if re.search('\.jar$', filename):
         z = zipfile.ZipFile(filename)
@@ -52,7 +65,7 @@ def getsourcecode(filename, verbose, execute, listing):
         if len(manifest) == 0:
             break
     if len(sourceref) == 0:
-        print('Failure for "' + filename + '":')
+        print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
         print('  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF')
         return
 
@@ -64,7 +77,7 @@ def getsourcecode(filename, verbose, execute, listing):
             print('  ' + part)
 
     if parts[0].find('pserver:dev.eclipse.org') >= 0:
-        print('Failure for "' + filename + '":')
+        print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
         print('  Outdated source reference "dev.eclipse.org"')
         return
 
@@ -110,19 +123,19 @@ def getsourcecode(filename, verbose, execute, listing):
         else:
             subprocess.call(bashscript, shell = True, stdout = open(os.devnull, 'w'), stderr = subprocess.STDOUT)
         if os.path.exists(relsrcdir):
-            print('Success for "' + filename + '":')
+            print(c.OK + 'Success for "' + filename + '":' + c.ENDC)
             print('  Source code is located at "' + relsrcdir + '"')
             if listing:
                 os.system('ls -l ' + relsrcdir)
         else:
             parentrelsrcdir = os.path.normpath(relsrcdir + '/..')
             if os.path.exists(parentrelsrcdir):
-                print('Warning (parent directory match) for "' + filename + '":')
+                print(c.WARN + 'Warning (parent directory match) for "' + filename + '":' + c.ENDC)
                 print('  Source code may be located below "' + parentrelsrcdir + '"')
                 if listing:
                     os.system('find ' + parentrelsrcdir)
             else:
-                print('Failure for "' + filename + '":')
+                print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
                 print('  No source code delivered to "' + relsrcdir + '"')
     else:
         if verbose:
@@ -138,6 +151,10 @@ def main(argv):
     parser.add_argument('filename',
       metavar = 'JAR',
       help = 'file name of a the Java archive to process')
+    parser.add_argument('-c', '--colorify',
+      action = 'store_true',
+      default = False,
+      help = 'colorify the output to differently mark success, warning and failure')
     parser.add_argument('-e', '--execute',
       action = 'store_true',
       default = False,
@@ -152,7 +169,11 @@ def main(argv):
       help = 'show names and texts the program is using')
     args = parser.parse_args()
 
-    getsourcecode(args.filename, args.verbose, args.execute, args.list)
+    if args.colorify:
+        c = colors
+    else:
+        c = nocolors
+    getsourcecode(args.filename, args.verbose, args.execute, args.list, c)
 
 if __name__ == '__main__':
     main(sys.argv)
