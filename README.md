@@ -1,7 +1,7 @@
 # Jar2src
 
 ## Purpose
-Get source code of Eclipse IDE from installed JAR files
+Retrieve source code for Eclipse IDE or obtain references to it by analyzing the installed JAR files
 
 ## Command line options
 ```bash
