@@ -41,6 +41,9 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if os.path.isfile(manifestname):
             manifest = open(manifestname, 'r').read().replace('\r\n', '\n')
     if manifest == '':
+        print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
+        print('  No MANIFEST.MF in META-INF found')
+        print()
         return
 
     if verbose:
@@ -48,30 +51,44 @@ def getsourcecode(filename, verbose, execute, listing, c):
 
     sourceref = ''
     license = ''
-    found = 0
+    foundsourceref = 0
+    foundlicense = 0
     while True:
         endlinepos = manifest.find('\n')
         line = manifest[0:endlinepos]
         if len(line) == 0:
             break
-        if found:
+        if foundsourceref:
             if line[0] == ' ':
                 sourceref += line[1:]
             else:
                 break
+        if foundlicense:
+            if line[0] == ' ':
+                license += line[1:]
+            else:
+                foundlicense = 0
         if line.find('Eclipse-SourceReferences: ') >= 0:
             sourceref = line[34:]
-            found = 1
+            foundsourceref = 1
         if line.find('Bundle-License: ') >= 0:
-            license = line[16:].split(';')[0]
+            license = line[16:]
+            foundlicense = 1
         manifest = manifest[endlinepos + 1:]
         if len(manifest) == 0:
             break
     if len(sourceref) == 0:
-        print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
-        print('  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF')
+        reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
+        if license == 'https://www.apache.org/licenses/LICENSE-2.0.txt':
+            print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
+            print(reason)
+            print('  (License does not impose disclosure obligations)')
+        else:
+            print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
+            print(reason)
         if len(license) != 0:
-            print('  License: ' + license)
+            print('  License: ' + license.split(';')[0])
+        print()
         return
 
     parts = sourceref.split(';')
@@ -84,6 +101,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
     if parts[0].find('pserver:dev.eclipse.org') >= 0:
         print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
         print('  Outdated source reference "dev.eclipse.org"')
+        print()
         return
 
     url = parts[0]
@@ -141,12 +159,13 @@ def getsourcecode(filename, verbose, execute, listing, c):
                     os.system('find ' + parentrelsrcdir)
             else:
                 print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
-                print('  No source code delivered to "' + relsrcdir + '"')
+                print('  Specified path to source code "' + relsrcdir + '" does not exist')
     else:
         if verbose:
             print()
         print("Script to obtain source code:")
         print(bashscript)
+    print()
     return
 
 def main(argv):
