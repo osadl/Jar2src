@@ -79,7 +79,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
             sourceref = line[34:]
             foundsourceref = 1
         if line.find('Bundle-Copyright: ') >= 0:
-            license = line[18:]
+            copyright = line[18:]
             foundcopyright = 1
         if line.find('Bundle-License: ') >= 0:
             license = line[16:]
@@ -89,7 +89,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
             break
     if len(sourceref) == 0:
         reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
-        if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 || copyright.find('www.unicode.org/copyright.html') >= 0:
+        if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 or copyright.find('www.unicode.org/copyright.html') >= 0:
             print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print(reason)
             print('  (License does not impose disclosure obligations)')
