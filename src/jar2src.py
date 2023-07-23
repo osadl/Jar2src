@@ -4,6 +4,9 @@
 # Copyright (c) 2023 Open Source Automation Development Lab (OSADL) eG <info@osadl.org>
 # Author Carsten Emde <C.Emde@osadl.org>
 
+# Maintain Python 2.x compatibility
+# pylint: disable=consider-using-with,unspecified-encoding
+
 import sys
 import os
 import subprocess
@@ -23,8 +26,8 @@ class nocolors:
     FAIL = ''
     ENDC = ''
 
-
 def parseargs(argline):
+    """ Convert the tag=value assignemnts of the argline to an associative array"""
     args = {}
     for arg in argline:
         a = arg.split('=')
@@ -32,6 +35,7 @@ def parseargs(argline):
     return args
 
 def getsourcecode(filename, verbose, execute, listing, c):
+    """ Find an optionally obtain a JAR's corresponding source code, if required by the license"""
     manifest = ''
     licensetext = ''
     if re.search('\.jar$', filename):
