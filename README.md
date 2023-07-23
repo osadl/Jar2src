@@ -22,6 +22,13 @@ options:
 
 Parse JAR manifest for location of source code, create script to obtain it and optionally execute script
 ```
+## Disclaimer
+This is a software tool, no legal advice.
+
+The result "Success" certainly does not mean that the software is correctly licensed.
+It merely means that the given source code path could be located in the checked out material,
+but there may be no, wrong or incomplete code.
+
 ## Examples how to use the software
 
 ### Generate bash script, only show, do not execute it
