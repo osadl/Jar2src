@@ -51,15 +51,15 @@ def getsourcecode(filename, verbose, execute, listing, c):
             print()
             return
 
-        manifest = z.read('META-INF/MANIFEST.MF').decode('utf-8').replace('\r\n', '\n')
-        if 'META-INF/LICENSE' in z.namelist():
-            licensetext = z.read('META-INF/LICENSE').decode('utf-8').replace('\r\n', '\n')
+        manifest = z.read('META-INF' + os.sep + 'MANIFEST.MF').decode('utf-8').replace('\r\n', '\n')
+        if 'META-INF' + os.sep + 'LICENSE' in z.namelist():
+            licensetext = z.read('META-INF' + os.sep + 'LICENSE').decode('utf-8').replace('\r\n', '\n')
         else:
             if 'LICENSE' in z.namelist():
                 licensetext = z.read('LICENSE').decode('utf-8').replace('\r\n', '\n')
         if licensetext == '':
             for name in z.namelist():
-                if name.find('about_files/LICENSE-') >= 0:
+                if name.find('about_files' + os.sep + 'LICENSE-') >= 0:
                     licensetext += z.read(name).decode('latin_1').replace('\r\n', '\n')
     else:
         classfound = 0
@@ -72,14 +72,14 @@ def getsourcecode(filename, verbose, execute, listing, c):
             print('  No files with suffix ".class" found in directory, but other binary files may be included')
             print()
             return
-        manifestname = filename + '/' + 'META-INF/MANIFEST.MF'
+        manifestname = filename + os.sep + 'META-INF' + os.sep + 'MANIFEST.MF'
         if os.path.isfile(manifestname):
             manifest = open(manifestname, 'r').read().replace('\r\n', '\n')
-        licensetextname = filename + '/' + 'META-INF/LICENSE'
+        licensetextname = filename + os.sep + 'META-INF' + os.sep + 'LICENSE'
         if os.path.isfile(licensetextname):
             licensetext = open(licensetextname, 'r').read().replace('\r\n', '\n')
         else:
-            licensetextname = filename + '/' + 'LICENSE'
+            licensetextname = filename + os.sep + 'LICENSE'
             if os.path.isfile(licensetextname):
                 licensetext = open(licensetextname, 'r').read().replace('\r\n', '\n')
 
@@ -180,7 +180,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
     args = parseargs(parts)
 
     path = args['path'].replace('"', '')
-    pathparts = path.split('/')
+    pathparts = path.split(os.sep)
     pathslashes = len(pathparts) - 1
     src = pathparts[pathslashes]
 
@@ -190,9 +190,9 @@ def getsourcecode(filename, verbose, execute, listing, c):
         commit = args['commitId']
 
     destdir = filename + '.srcdir'
-    srcdir = path + '/src/' + src.replace('.', '/')
-    projdir = project + '/' + srcdir
-    relsrcdir = destdir +  '/' + projdir
+    srcdir = path + os.sep + 'src' + os.sep + src.replace('.', os.sep)
+    projdir = project + os.sep + srcdir
+    relsrcdir = destdir +  os.sep + projdir
 
     bashscript = '#!/bin/bash\n' +\
     '# Use this script to obtain the source code for "' + filename + '"\n' +\
@@ -213,7 +213,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
             if listing:
                 os.system('ls -l ' + relsrcdir)
         else:
-            parentrelsrcdir = os.path.normpath(relsrcdir + '/..')
+            parentrelsrcdir = os.path.normpath(relsrcdir + os.sep + '..')
             if os.path.exists(parentrelsrcdir):
                 print(c.WARN + 'Warning (parent directory match) for "' + filename + '":' + c.ENDC)
                 print('  Source code may be located below "' + parentrelsrcdir + '"')
