@@ -50,8 +50,10 @@ def getsourcecode(filename, verbose, execute, listing, c):
         print('Manifest found in "' + filename + '"')
 
     sourceref = ''
-    license = ''
     foundsourceref = 0
+    copyright = ''
+    foundcopyright = 0
+    license = ''
     foundlicense = 0
     while True:
         endlinepos = manifest.find('\n')
@@ -63,6 +65,11 @@ def getsourcecode(filename, verbose, execute, listing, c):
                 sourceref += line[1:]
             else:
                 break
+        if foundcopyright:
+            if line[0] == ' ':
+                copyright += line[1:]
+            else:
+                foundcopyright = 0
         if foundlicense:
             if line[0] == ' ':
                 license += line[1:]
@@ -71,6 +78,9 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if line.find('Eclipse-SourceReferences: ') >= 0:
             sourceref = line[34:]
             foundsourceref = 1
+        if line.find('Bundle-Copyright: ') >= 0:
+            license = line[18:]
+            foundcopyright = 1
         if line.find('Bundle-License: ') >= 0:
             license = line[16:]
             foundlicense = 1
@@ -79,13 +89,15 @@ def getsourcecode(filename, verbose, execute, listing, c):
             break
     if len(sourceref) == 0:
         reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
-        if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0:
+        if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 || copyright.find('www.unicode.org/copyright.html') >= 0:
             print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print(reason)
             print('  (License does not impose disclosure obligations)')
         else:
             print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
             print(reason)
+        if len(copyright) != 0:
+            print('  Copyright: ' + copyright.split(';')[0])
         if len(license) != 0:
             print('  License: ' + license.split(';')[0])
         print()
