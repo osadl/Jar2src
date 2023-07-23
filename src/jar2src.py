@@ -33,13 +33,26 @@ def parseargs(argline):
 
 def getsourcecode(filename, verbose, execute, listing, c):
     manifest = ''
+    licensetext = ''
     if re.search('\.jar$', filename):
         z = zipfile.ZipFile(filename)
         manifest = z.read('META-INF/MANIFEST.MF').decode('utf-8').replace('\r\n', '\n')
+        if 'META-INF/LICENSE' in z.namelist():
+            licensetext = z.read('META-INF/LICENSE').decode('utf-8').replace('\r\n', '\n')
+        else:
+             if 'LICENSE' in z.namelist():
+                licensetext = z.read('LICENSE').decode('utf-8').replace('\r\n', '\n')
     else:
         manifestname = filename + '/' + 'META-INF/MANIFEST.MF'
         if os.path.isfile(manifestname):
             manifest = open(manifestname, 'r').read().replace('\r\n', '\n')
+        licensetextname = filename + '/' + 'META-INF/LICENSE'
+        if os.path.isfile(licensetextname):
+            licensetext = open(licensetextname, 'r').read().replace('\r\n', '\n')
+        else:
+            licensetextname = filename + '/' + 'LICENSE'
+            if os.path.isfile(licensetextname):
+                licensetext = open(licensetextname, 'r').read().replace('\r\n', '\n')
     if manifest == '':
         print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
         print('  No MANIFEST.MF in META-INF found')
@@ -88,6 +101,8 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if len(manifest) == 0:
             break
     if len(sourceref) == 0:
+        if re.search('Apache License\W*Version 2\.0', licensetext) or re.search('SPDX-License-Identifier:.*Apache-2\.0', licensetext):
+            license = 'www.apache.org/licenses/LICENSE-2.0.txt'
         reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
         if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 or copyright.find('www.unicode.org/copyright.html') >= 0:
             print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
