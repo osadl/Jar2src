@@ -79,7 +79,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
             break
     if len(sourceref) == 0:
         reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
-        if license == 'https://www.apache.org/licenses/LICENSE-2.0.txt':
+        if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0:
             print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print(reason)
             print('  (License does not impose disclosure obligations)')
