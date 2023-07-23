@@ -40,8 +40,12 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if 'META-INF/LICENSE' in z.namelist():
             licensetext = z.read('META-INF/LICENSE').decode('utf-8').replace('\r\n', '\n')
         else:
-             if 'LICENSE' in z.namelist():
+            if 'LICENSE' in z.namelist():
                 licensetext = z.read('LICENSE').decode('utf-8').replace('\r\n', '\n')
+        if licensetext == '':
+            for name in z.namelist():
+                 if name.find('about_files/LICENSE-') >= 0:
+                     licensetext += z.read(name).decode('latin_1').replace('\r\n', '\n')
     else:
         manifestname = filename + '/' + 'META-INF/MANIFEST.MF'
         if os.path.isfile(manifestname):
@@ -53,6 +57,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
             licensetextname = filename + '/' + 'LICENSE'
             if os.path.isfile(licensetextname):
                 licensetext = open(licensetextname, 'r').read().replace('\r\n', '\n')
+
     if manifest == '':
         print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
         print('  No MANIFEST.MF in META-INF found')
@@ -101,11 +106,15 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if len(manifest) == 0:
             break
     if len(sourceref) == 0:
-        if re.search('Apache License\W*Version 2\.0', licensetext) or licensetext.find('SPDX-License-Identifier: Apache-2.0') >= 0:
+        if license == '' and re.search('Apache License\W*Version 2\.0', licensetext) or licensetext.find('SPDX-License-Identifier: Apache-2.0') >= 0:
             license = 'Apache-2.0'
+        if licensetext.find('W3C Software License') >= 0:
+            if len(license) > 0:
+                license += ', '
+            license += 'W3C Software License'
         reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
         if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 or copyright.find('www.unicode.org/copyright.html') >= 0 or\
-          license == 'Apache-2.0' or license == 'http://opensource.org/licenses/apache2.0.php':
+          license.find('Apache-2.0') >= 0 or license.find('http://opensource.org/licenses/apache2.0.php') >= 0:
             print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print(reason)
             print('  (License does not impose disclosure obligations)')
