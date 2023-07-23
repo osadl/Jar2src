@@ -36,6 +36,17 @@ def getsourcecode(filename, verbose, execute, listing, c):
     licensetext = ''
     if re.search('\.jar$', filename):
         z = zipfile.ZipFile(filename)
+        classfound = 0
+        for name in z.namelist():
+            if re.search('\.class$', name):
+                classfound = 1;
+                break
+        if not classfound:
+            print(c.WARN + 'Warning for "' + filename + '"' + c.ENDC)
+            print('  No files with suffix ".class" found in archive, but other binary files may be included')
+            print()
+            return
+
         manifest = z.read('META-INF/MANIFEST.MF').decode('utf-8').replace('\r\n', '\n')
         if 'META-INF/LICENSE' in z.namelist():
             licensetext = z.read('META-INF/LICENSE').decode('utf-8').replace('\r\n', '\n')
@@ -44,9 +55,19 @@ def getsourcecode(filename, verbose, execute, listing, c):
                 licensetext = z.read('LICENSE').decode('utf-8').replace('\r\n', '\n')
         if licensetext == '':
             for name in z.namelist():
-                 if name.find('about_files/LICENSE-') >= 0:
-                     licensetext += z.read(name).decode('latin_1').replace('\r\n', '\n')
+                if name.find('about_files/LICENSE-') >= 0:
+                    licensetext += z.read(name).decode('latin_1').replace('\r\n', '\n')
     else:
+        classfound = 0
+        for file in os.walk(filename):
+            if os.path.isfile(file[0]) and re.search('\.class$', file[0]):
+                classfound = 1
+                break
+        if not classfound:
+            print(c.WARN + 'Warning for "' + filename + '"' + c.ENDC)
+            print('  No files with suffix ".class" found in directory, but other binary files may be included')
+            print()
+            return
         manifestname = filename + '/' + 'META-INF/MANIFEST.MF'
         if os.path.isfile(manifestname):
             manifest = open(manifestname, 'r').read().replace('\r\n', '\n')
