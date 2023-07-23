@@ -101,10 +101,11 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if len(manifest) == 0:
             break
     if len(sourceref) == 0:
-        if re.search('Apache License\W*Version 2\.0', licensetext) or re.search('SPDX-License-Identifier:.*Apache-2\.0', licensetext):
-            license = 'www.apache.org/licenses/LICENSE-2.0.txt'
+        if re.search('Apache License\W*Version 2\.0', licensetext) or licensetext.find('SPDX-License-Identifier: Apache-2.0') >= 0:
+            license = 'Apache-2.0'
         reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
-        if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 or copyright.find('www.unicode.org/copyright.html') >= 0:
+        if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 or copyright.find('www.unicode.org/copyright.html') >= 0 or\
+          license == 'Apache-2.0' or license == 'http://opensource.org/licenses/apache2.0.php':
             print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print(reason)
             print('  (License does not impose disclosure obligations)')
