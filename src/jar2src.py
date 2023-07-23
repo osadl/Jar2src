@@ -31,19 +31,19 @@ def parseargs(argline):
     args = {}
     for arg in argline:
         a = arg.split('=')
-        args[a[0]] = a[1];
+        args[a[0]] = a[1]
     return args
 
 def getsourcecode(filename, verbose, execute, listing, c):
     """ Find an optionally obtain a JAR's corresponding source code, if required by the license"""
     manifest = ''
     licensetext = ''
-    if re.search('\.jar$', filename):
+    if re.search(r'\.jar$', filename):
         z = zipfile.ZipFile(filename)
         classfound = 0
         for name in z.namelist():
-            if re.search('\.class$', name):
-                classfound = 1;
+            if re.search(r'\.class$', name):
+                classfound = 1
                 break
         if not classfound:
             print(c.WARN + 'Warning for "' + filename + '"' + c.ENDC)
@@ -64,7 +64,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
     else:
         classfound = 0
         for file in os.walk(filename):
-            if os.path.isfile(file[0]) and re.search('\.class$', file[0]):
+            if os.path.isfile(file[0]) and re.search(r'\.class$', file[0]):
                 classfound = 1
                 break
         if not classfound:
@@ -131,7 +131,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
         if len(manifest) == 0:
             break
     if len(sourceref) == 0:
-        if license == '' and re.search('Apache License\W*Version 2\.0', licensetext) or licensetext.find('SPDX-License-Identifier: Apache-2.0') >= 0:
+        if license == '' and re.search(r'Apache License\W*Version 2\.0', licensetext) or licensetext.find('SPDX-License-Identifier: Apache-2.0') >= 0:
             license = 'Apache-2.0'
         if licensetext.find('W3C Software License') >= 0:
             if len(license) > 0:
