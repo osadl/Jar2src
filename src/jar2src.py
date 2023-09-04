@@ -35,7 +35,7 @@ def parseargs(argline):
     return args
 
 def getsourcecode(filename, verbose, execute, listing, c):
-    """ Find an optionally obtain a JAR's corresponding source code, if required by the license"""
+    """ Find and optionally obtain a JAR's corresponding source code, if required by the license"""
     manifest = ''
     licensetext = ''
     if re.search(r'\.jar$', filename):
