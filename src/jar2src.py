@@ -26,6 +26,36 @@ class nocolors:
     FAIL = ''
     ENDC = ''
 
+def checkparent(parentrelsrcdir, filename, lastsubdir, listing, verbose, inserted, movetrials, c):
+    found = False
+    if os.path.exists(parentrelsrcdir):
+        found = True
+        if len(inserted) == 0:
+            print(c.WARN + 'Warning (parent directory match) for "' + filename + '":' + c.ENDC)
+        else:
+            print(c.WARN + 'Warning (parent directory match and needed to insert "' + inserted + '" subdirectory at level -' + str(movetrials) + ') for "' + filename + '":' + c.ENDC)
+        print('  Source code may be located below "' + parentrelsrcdir + '", subdir "' + lastsubdir + '" not found')
+        if listing:
+            os.system('find ' + parentrelsrcdir)
+    else:
+        if verbose:
+            print('Source code directory "' + parentrelsrcdir + '" not found')
+    return found
+
+def checkinsert(newrelsrcdir, filename, lastsubdir, listing, verbose, inserted, movetrials, c):
+    found = False
+    if os.path.exists(newrelsrcdir):
+        found = True
+        print(c.WARN + 'Warning (needed to insert "' + inserted + '" subdirectory at level -' + str(movetrials) + ') for "' + filename + '":' + c.ENDC)
+        print('  Source code is probably located at "' + newrelsrcdir + '"')
+        if listing:
+            os.system('find ' + newrelsrcdir)
+    else:
+        if verbose:
+            print('Source code directory "' + newrelsrcdir + '" not found')
+        found = checkparent(os.path.normpath(newrelsrcdir + '/..'), filename, lastsubdir, listing, verbose, inserted, movetrials, c)
+    return found
+
 def parseargs(argline):
     """ Convert the tag=value assignemnts of the argline to an associative array"""
     args = {}
@@ -200,7 +230,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
     'mkdir -p ' + destdir + '\n' +\
     'cd ' + destdir + '\n' +\
     'rm -Rf ' + project + '\n' +\
-    'git clone ' + url + '\n' +\
+    'git clone -q ' + url + '\n' +\
     'retval=$?' + '\n' +\
     'if test $retval = 0' + '\n' +\
     'then' + '\n' +\
@@ -212,13 +242,10 @@ def getsourcecode(filename, verbose, execute, listing, c):
 
     if execute:
         result = subprocess.run(bashscript, shell = True, capture_output = True, text = True)
-        message = result.stderr.split('\n')[0]
-        errormessage = '  ' + result.stderr.split('\n')[1].replace('fatal: ', '').capitalize()
-        if verbose:
-            print(message)
-        if len(errormessage) > 8:
+        errormessage = '  ' + result.stderr.replace('fatal: ', '').capitalize()
+        if len(errormessage.strip()) > 0:
             print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
-            print(errormessage)
+            print(errormessage, end = '')
         else:
             if os.path.exists(relsrcdir):
                 print(c.OK + 'Success for "' + filename + '":' + c.ENDC)
@@ -228,19 +255,12 @@ def getsourcecode(filename, verbose, execute, listing, c):
             else:
                 if verbose:
                     print('Source code directory "' + relsrcdir + '" not found')
-                found = False
-                parentrelsrcdir = os.path.normpath(relsrcdir + '/..')
-                if os.path.exists(parentrelsrcdir):
-                    found = True
-                    dirparts = relsrcdir.split('/')
-                    notfoundsubdir = dirparts[len(dirparts) - 1]
-                    print(c.WARN + 'Warning (parent directory match) for "' + filename + '":' + c.ENDC)
-                    print('  Source code may be located below "' + parentrelsrcdir + '", subdir "' + notfoundsubdir + '" not found')
-                    if listing:
-                        os.system('find ' + parentrelsrcdir)
-                else:
-                    if verbose:
-                        print('Source code directory "' + parentrelsrcdir + '" not found')
+                dirparts = relsrcdir.split('/')
+                lastsubdir = dirparts[len(dirparts) - 1]
+                inserted = ''
+                movetrials = ''
+                found = checkparent(os.path.normpath(relsrcdir + '/..'), filename, lastsubdir, listing, verbose, inserted, movetrials, c)
+                if not found:
                     for movetrials in list(range(1, 4)):
                         if found:
                             break
@@ -251,28 +271,13 @@ def getsourcecode(filename, verbose, execute, listing, c):
                         for moveup in list(range(lastpart, movepart, -1)):
                             dirparts[moveup] = dirparts[moveup - 1]
                         dirparts[movepart] = 'internal'
+                        inserted = dirparts[movepart]
                         newrelsrcdir = ('/').join(dirparts)
-                        if os.path.exists(newrelsrcdir):
-                            found = True
-                            print(c.WARN + 'Warning (needed to insert "/internal" subdirectory at level -' + str(movetrials) + ') for "' + filename + '":' + c.ENDC)
-                            print('  Source code is probably located at "' + newrelsrcdir + '"')
-                            if listing:
-                                os.system('find ' + newrelsrcdir)
-                        else:
-                            if verbose:
-                                print('Source code directory "' + newrelsrcdir + '" not found')
-                            parentnewrelsrcdir = os.path.normpath(newrelsrcdir + '/..')
-                            if os.path.exists(parentnewrelsrcdir):
-                                found = True
-                                dirparts = newrelsrcdir.split('/')
-                                notfoundsubdir = dirparts[len(dirparts) - 1]
-                                print(c.WARN + 'Warning (needed to insert "/internal" subdirectory at level -' + str(movetrials) + ') and parent directory match) for "' + filename + '":' + c.ENDC)
-                                print('  Source code may be located below "' + parentnewrelsrcdir + '", subdir "' + notfoundsubdir + '" not found')
-                                if listing:
-                                    os.system('find ' + parentnewrelsrcdir)
-                            else:
-                                if verbose:
-                                    print('Source code directory "' + parentnewrelsrcdir + '" not found')
+                        found = checkinsert(newrelsrcdir, filename, lastsubdir, listing, verbose, inserted, movetrials, c)
+                        if not found:
+                            inserted = '/internal/provisional/'
+                            newrelsrcdir2 = newrelsrcdir.replace('/internal/', inserted)
+                            found = checkinsert(newrelsrcdir2, filename, lastsubdir, listing, verbose, inserted, movetrials, c)
 
                 if not found:
                     print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
