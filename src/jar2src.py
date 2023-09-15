@@ -76,7 +76,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
                 classfound = 1
                 break
         if not classfound:
-            print(c.WARN + 'Warning for "' + filename + '"' + c.ENDC)
+            print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print('  No files with suffix ".class" found in archive, but other binary files may be included')
             print()
             return
@@ -98,7 +98,7 @@ def getsourcecode(filename, verbose, execute, listing, c):
                 classfound = 1
                 break
         if not classfound:
-            print(c.WARN + 'Warning for "' + filename + '"' + c.ENDC)
+            print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print('  No files with suffix ".class" found in directory, but other binary files may be included')
             print()
             return
