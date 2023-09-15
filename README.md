@@ -111,4 +111,4 @@ jar2src.py -ce org.eclipse.equinox.p2.publisher.eclipse_1.5.0.v20230330-1254.jar
 Source code is located at "org.eclipse.equinox.p2.publisher.eclipse_1.5.0.v20230330-1254.jar.srcdir/p2/bundles/org.eclipse.equinox.p2.publisher.eclipse/src/org/eclipse/equinox/p2/publisher/eclipse"
 ```
 ## Program output
-The output of two program runs are available in PDF format <a href="/pdf/Locate-Eclipse-IDE-source-code-by-manifest-2023-07-23.pdf">here for Eclipse IDE 2023-06</a> and <a href="/pdf/Locate-Eclipse-IDE-source-code-by-manifest-2023-09-14.pdf">here for Eclipse IDE 2023-09</a>.
+The output of two program runs in a loop are available in PDF format <a href="/pdf/Locate-Eclipse-IDE-source-code-by-manifest-2023-07-23.pdf">here for Eclipse IDE 2023-06</a> and <a href="/pdf/Locate-Eclipse-IDE-source-code-by-manifest-2023-09-14.pdf">here for Eclipse IDE 2023-09</a>.
