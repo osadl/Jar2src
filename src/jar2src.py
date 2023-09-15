@@ -139,7 +139,8 @@ def getsourcecode(filename, verbose, execute, listing, c):
             license += 'W3C Software License'
         reason = '  Tag "Eclipse-SourceReferences" not found in META-INF/MANIFEST.MF'
         if license.find('www.apache.org/licenses/LICENSE-2.0.txt') >= 0 or copyright.find('www.unicode.org/copyright.html') >= 0 or\
-          license.find('Apache-2.0') >= 0 or license.find('http://opensource.org/licenses/apache2.0.php') >= 0:
+          license.find('Apache-2.0') >= 0 or license.find('http://opensource.org/licenses/apache2.0.php') >= 0 or\
+          license.find('mit-license.php') >= 0 or license.find('BSD-3-Clause') >= 0:
             print(c.WARN + 'Warning for "' + filename + '":' + c.ENDC)
             print(reason)
             print('  (License does not impose disclosure obligations)')
@@ -200,28 +201,85 @@ def getsourcecode(filename, verbose, execute, listing, c):
     'cd ' + destdir + '\n' +\
     'rm -Rf ' + project + '\n' +\
     'git clone ' + url + '\n' +\
-    'cd ' + project + '\n' +\
-    'git checkout ' + commit + '\n'
+    'retval=$?' + '\n' +\
+    'if test $retval = 0' + '\n' +\
+    'then' + '\n' +\
+    '  cd ' + project + '\n' +\
+    '  git checkout -q ' + commit + '\n' +\
+    'else' + '\n' +\
+    '  echo "  "Git error $retval' + '\n' +\
+    'fi' + '\n'
+
     if execute:
+        result = subprocess.run(bashscript, shell = True, capture_output = True, text = True)
+        message = result.stderr.split('\n')[0]
+        errormessage = '  ' + result.stderr.split('\n')[1].replace('fatal: ', '').capitalize()
         if verbose:
-            os.system(bashscript)
+            print(message)
+        if len(errormessage) > 8:
+            print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
+            print(errormessage)
         else:
-            subprocess.call(bashscript, shell = True, stdout = open(os.devnull, 'w'), stderr = subprocess.STDOUT)
-        if os.path.exists(relsrcdir):
-            print(c.OK + 'Success for "' + filename + '":' + c.ENDC)
-            print('  Source code is located at "' + relsrcdir + '"')
-            if listing:
-                os.system('ls -l ' + relsrcdir)
-        else:
-            parentrelsrcdir = os.path.normpath(relsrcdir + '/..')
-            if os.path.exists(parentrelsrcdir):
-                print(c.WARN + 'Warning (parent directory match) for "' + filename + '":' + c.ENDC)
-                print('  Source code may be located below "' + parentrelsrcdir + '"')
+            if os.path.exists(relsrcdir):
+                print(c.OK + 'Success for "' + filename + '":' + c.ENDC)
+                print('  Source code is located at "' + relsrcdir + '"')
                 if listing:
-                    os.system('find ' + parentrelsrcdir)
+                    os.system('ls -l ' + relsrcdir)
             else:
-                print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
-                print('  Specified path to source code "' + relsrcdir + '" does not exist')
+                if verbose:
+                    print('Source code directory "' + relsrcdir + '" not found')
+                found = False
+                parentrelsrcdir = os.path.normpath(relsrcdir + '/..')
+                if os.path.exists(parentrelsrcdir):
+                    found = True
+                    dirparts = relsrcdir.split('/')
+                    notfoundsubdir = dirparts[len(dirparts) - 1]
+                    print(c.WARN + 'Warning (parent directory match) for "' + filename + '":' + c.ENDC)
+                    print('  Source code may be located below "' + parentrelsrcdir + '", subdir "' + notfoundsubdir + '" not found')
+                    if listing:
+                        os.system('find ' + parentrelsrcdir)
+                else:
+                    if verbose:
+                        print('Source code directory "' + parentrelsrcdir + '" not found')
+                    for movetrials in list(range(1, 4)):
+                        if found:
+                            break
+                        dirparts = relsrcdir.split('/')
+                        lastpart = len(dirparts) - 1
+                        movepart = lastpart - movetrials
+                        dirparts.append(dirparts[lastpart])
+                        for moveup in list(range(lastpart, movepart, -1)):
+                            dirparts[moveup] = dirparts[moveup - 1]
+                        dirparts[movepart] = 'internal'
+                        newrelsrcdir = ('/').join(dirparts)
+                        if os.path.exists(newrelsrcdir):
+                            found = True
+                            print(c.WARN + 'Warning (needed to insert "/internal" subdirectory at level -' + str(movetrials) + ') for "' + filename + '":' + c.ENDC)
+                            print('  Source code is probably located at "' + newrelsrcdir + '"')
+                            if listing:
+                                os.system('find ' + newrelsrcdir)
+                        else:
+                            if verbose:
+                                print('Source code directory "' + newrelsrcdir + '" not found')
+                            parentnewrelsrcdir = os.path.normpath(newrelsrcdir + '/..')
+                            if os.path.exists(parentnewrelsrcdir):
+                                found = True
+                                dirparts = newrelsrcdir.split('/')
+                                notfoundsubdir = dirparts[len(dirparts) - 1]
+                                print(c.WARN + 'Warning (needed to insert "/internal" subdirectory at level -' + str(movetrials) + ') and parent directory match) for "' + filename + '":' + c.ENDC)
+                                print('  Source code may be located below "' + parentnewrelsrcdir + '", subdir "' + notfoundsubdir + '" not found')
+                                if listing:
+                                    os.system('find ' + parentnewrelsrcdir)
+                            else:
+                                if verbose:
+                                    print('Source code directory "' + parentnewrelsrcdir + '" not found')
+
+                if not found:
+                    print(c.FAIL + 'Failure for "' + filename + '":' + c.ENDC)
+                    if len(errormessage) > 8:
+                        print(errormessage)
+                    else:
+                        print('  Specified path to source code "' + relsrcdir + '" was not found')
     else:
         if verbose:
             print()
